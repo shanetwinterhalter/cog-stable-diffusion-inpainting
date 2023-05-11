@@ -34,7 +34,7 @@ class Predictor(BasePredictor):
             default=None
         ),
         image: Path = Input(
-            description="Inital image to generate variations of. Supproting images size with 512x512",
+            description="Inital image to generate variations of",
         ),
         mask: Path = Input(
             description="Black and white image to use as mask for inpainting over the image provided. White pixels are inpainted and black pixels are preserved",
@@ -60,9 +60,10 @@ class Predictor(BasePredictor):
             seed = int.from_bytes(os.urandom(2), "big")
         print(f"Using seed: {seed}")
 
-        image = Image.open(image).convert("RGB").resize((512, 512))
+        image = Image.open(image).convert("RGB")
+        image_size = image.size
         extra_kwargs = {
-            "mask_image": Image.open(mask).convert("RGB").resize(image.size),
+            "mask_image": Image.open(mask).convert("RGB").resize(image_size),
             "image": image
         }
 
@@ -74,6 +75,8 @@ class Predictor(BasePredictor):
             if negative_prompt is not None
             else None,
             guidance_scale=guidance_scale,
+            height=image_size[0],
+            width=image_size[1],
             generator=generator,
             num_inference_steps=num_inference_steps,
             **extra_kwargs,
